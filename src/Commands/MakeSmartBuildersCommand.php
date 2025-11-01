@@ -59,7 +59,7 @@ class MakeSmartBuildersCommand extends Command
     protected function buildStub(string $stubFile, array $replacements): string
     {
         // Caminho do stub dentro do pacote
-        $stubPath = __DIR__ . "/../../Stubs/SmartBuilder/{$stubFile}.stub";
+        $stubPath = __DIR__ . "/../Stubs/SmartBuilder/{$stubFile}.stub";
 
         // Permitir override por publicação (caso tenha sido publicado na app)
         //$publishedPath = base_path("stubs/smart-builders/{$stubFile}.stub");
