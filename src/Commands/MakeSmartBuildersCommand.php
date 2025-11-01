@@ -58,7 +58,14 @@ class MakeSmartBuildersCommand extends Command
 
     protected function buildStub(string $stubFile, array $replacements): string
     {
-        $stubPath = base_path("stubs/smart-builders/{$stubFile}.stub");
+        // Caminho do stub dentro do pacote
+        $stubPath = __DIR__ . "/../../Stubs/SmartBuilder/{$stubFile}.stub";
+
+        // Permitir override por publicação (caso tenha sido publicado na app)
+        //$publishedPath = base_path("stubs/smart-builders/{$stubFile}.stub");
+        //if (file_exists($publishedPath)) {
+        //    $stubPath = $publishedPath;
+        //}
 
         if (! file_exists($stubPath)) {
             throw new \RuntimeException("Stub não encontrado: {$stubPath}");
@@ -100,7 +107,7 @@ class MakeSmartBuildersCommand extends Command
             return;
         }
 
-        $textColumns = $columns->map(fn($col) => "            Tables\\Columns\\TextColumn::make('{$col}')->searchable(),")->implode("\n");
+        $textColumns = $columns->map(fn($col) => "            TextColumn::make('{$col}')->searchable(),")->implode("\n");
 
         $contents = $this->buildStub('table', [
             'namespace' => $namespace,

@@ -1,0 +1,49 @@
+<?php
+
+namespace {{ namespace }};
+
+use Filament\Facades\Filament;
+
+use Filament\Tables;
+use Filament\Tables\Columns\TextColum;
+
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+
+class TableBuilder
+{
+    public static function columns(): array
+    {
+        return [
+{{ columns }}
+        ];
+    }
+
+    public static function actions(): array
+    {
+        return [
+            ViewAction::make(),
+            EditAction::make(),
+            DeleteAction::make(),
+        ];
+    }
+
+    public static function bulkActions(): array
+    {
+        return [
+            DeleteBulkAction::make(),
+        ];
+    }
+
+    public static function filters(): array
+    {
+        return [];
+    }
+
+    public static function headerActions(): array
+    {
+        return [];
+    }
+}

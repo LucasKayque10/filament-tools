@@ -1,0 +1,15 @@
+<?php
+
+namespace {{ namespace }};
+
+use Filament\Forms\Components\TextInput;
+
+class FormBuilder
+{
+    public static function make(): array
+    {
+        return [
+{{ inputs }}
+        ];
+    }
+}
