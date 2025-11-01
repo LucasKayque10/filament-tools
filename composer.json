@@ -1,0 +1,22 @@
+{
+    "name": "lucaskayque/filament-tools",
+    "description": "Comandos e classes utilitárias para projetos Filament.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "LucasKayque\\FilamentTools\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "LucasKayque\\FilamentTools\\FilamentToolsServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": ">=8.1",
+        "filament/filament": "^3.0"
+    }
+}
