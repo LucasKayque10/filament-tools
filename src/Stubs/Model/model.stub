@@ -1,0 +1,25 @@
+<?php
+
+namespace {$namespace};
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+
+class {$className} extends Model
+{ 
+    protected $table = '{$table}';
+
+    protected $fillable = [
+        {$fillable}
+    ];
+
+{$belongsTo}
+
+{$hasManyComments}
+
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $query
+{$filterConditions};
+    }
+}

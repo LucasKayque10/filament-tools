@@ -5,7 +5,6 @@ namespace LucasKayque\FilamentTools\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Illuminate\Filesystem\Filesystem;
 
 class MakeSmartModelCommand extends Command
 {
@@ -14,6 +13,7 @@ class MakeSmartModelCommand extends Command
 
     public function handle()
     {
+        $hasManyComments = [];
         $nameInput = $this->argument('name');
         $className = class_basename($nameInput);
         $table = $this->option('table') ?? Str::snake(Str::pluralStudly($className));
@@ -23,69 +23,71 @@ class MakeSmartModelCommand extends Command
 
         if (!Schema::hasTable($table)) {
             $this->error("Tabela '$table' não encontrada.");
-            return Command::FAILURE;
+            return;
         }
 
-        (new Filesystem)->ensureDirectoryExists($modelDir);
+        if (!is_dir($modelDir)) {
+            mkdir($modelDir, 0755, true);
+        }
 
         if (file_exists($modelPath)) {
-            $this->warn("✗ Model já existe: {$modelPath}");
-            return Command::FAILURE;
+            $this->error("Model já existe: {$modelPath}");
+            return;
         }
 
-        // ---- Montagem dos dados ----
         $columns = Schema::getColumnListing($table);
         $fillable = collect($columns)->reject(fn($col) => in_array($col, ['id', 'created_at', 'updated_at', 'deleted_at']))->values();
 
         // belongsTo: colunas que terminam com _id
-        $hasManyComments = [];
         $belongsTo = collect($columns)
             ->filter(fn($col) => Str::endsWith($col, '_id'))
             ->map(function ($col) use ($className, &$hasManyComments) {
                 $relation = Str::camel(str_replace('_id', '', $col));
                 $relatedClass = Str::studly($relation);
 
-                $hasManyComments[] =
-                    "// Adicionar em {$relatedClass}:\n" .
-                    "// public function " . Str::camel(Str::plural($className)) .
-                    "() { return \$this->hasMany({$className}::class, '{$col}'); }";
+                // Sugerir hasMany no model relacionado
+                $hasManyComments[] = "// Adicionar em {$relatedClass}:\n" .
+                                    "// public function " . Str::camel(Str::plural($className)) .
+                                    "() { return \$this->hasMany({$className}::class, '{$col}'); }";
 
                 return "    public function {$relation}()\n    {\n        return \$this->belongsTo({$relatedClass}::class);\n    }\n";
-            })->implode("\n\n");
+            });
 
-        // Condições do filtro
         $filterConditions = $fillable->map(function ($col) {
             return "            ->when(\$filters['$col'] ?? null, fn(\$q, \$v) => \$q->where('$col', 'ilike', \"%\$v%\"))";
-        })->implode("\n");
+        });
 
-        // ---- Leitura e preenchimento do stub ----
-        $stubPath = __DIR__ . '/../Stubs/Model/model.stub';
+        $modelContent = "<?php
 
-        if (! file_exists($stubPath)) {
-            $this->error("Stub não encontrado em: {$stubPath}");
-            return Command::FAILURE;
-        }
+namespace {$namespace};
 
-        $stub = file_get_contents($stubPath);
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use OwenIt\Auditing\Contracts\Auditable;
 
-        $replacements = [
-            '{$namespace}' => $namespace,
-            '{$className}' => $className,
-            '{$table}' => $table,
-            '{$fillable}' => $fillable->map(fn($f) => "'$f'")->implode(",\n        "),
-            '{$belongsTo}' => $belongsTo,
-            '{$hasManyComments}' => !empty($hasManyComments)
-                ? '// ---- HasMany Sugeridos ----' . "\n" . implode("\n", $hasManyComments)
-                : '',
-            '{$filterConditions}' => $filterConditions,
-        ];
+class {$className} extends Model implements Auditable
+{
+    use \OwenIt\Auditing\Auditable;
+    
+    protected \$table = '$table';
 
-        $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
+    protected \$fillable = [
+        " . $fillable->map(fn($f) => "'$f'")->implode(",\n        ") . "
+    ];
 
-        // ---- Grava o arquivo final ----
-        file_put_contents($modelPath, $content);
-        $this->info("✓ Model {$className} criado em: {$modelPath}");
+" . $belongsTo->implode("\n") . "
 
-        return Command::SUCCESS;
+" . (!empty($hasManyComments) ? '// ---- HasMany Sugeridos ----' . "\n" . implode("\n", $hasManyComments) . "\n" : '') . "
+
+    public function scopeFilter(Builder \$query, array \$filters): Builder
+    {
+        return \$query
+" . $filterConditions->implode("\n") . ";
+    }
+}
+";
+
+        file_put_contents($modelPath, $modelContent);
+        $this->info("Model {$className} criado em: {$modelPath}");
     }
 }

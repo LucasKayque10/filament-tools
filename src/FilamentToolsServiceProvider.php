@@ -22,6 +22,7 @@ class FilamentToolsServiceProvider extends ServiceProvider
                 Commands\MakeSmartModelCommand::class,
                 Commands\MakeSmartBuildersCommand::class,
                 Commands\MakeSmartMigrationCommand::class,
+                Commands\MakeSmartResourceCommand::class,
             ]);
 
             // Caso queira publicar arquivos futuramente:

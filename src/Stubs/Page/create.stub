@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Filament\{$panel}\Resources\{$resource}Resource\Pages;
+
+use App\Filament\{$panel}\Resources\{$resource}Resource;
+use Filament\Resources\Pages\CreateRecord;
+
+class Create{$resource} extends CreateRecord
+{
+    protected static string $resource = {$resource}Resource::class;
+
+    public function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+}
