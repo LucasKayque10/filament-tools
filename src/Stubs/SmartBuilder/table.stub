@@ -5,7 +5,7 @@ namespace {{ namespace }};
 use Filament\Facades\Filament;
 
 use Filament\Tables;
-use Filament\Tables\Columns\TextColum;
+use Filament\Tables\Columns\TextColumn;
 
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Actions\EditAction;
